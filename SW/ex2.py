@@ -31,7 +31,7 @@ def check_temp(temp, unit1, unit2):
         return True
 
 def convert(uri):
-    return pytemp.pytemp(int(uri[1]), uri[2], uri[3])
+    return pytemp.pytemp(float(uri[1]), uri[2], uri[3])
 
 
 
