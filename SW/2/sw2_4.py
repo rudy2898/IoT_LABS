@@ -1,41 +1,59 @@
-import paho.mqtt.client as PahoMQTT
+import cherrypy
+import json
+import os
+import requests
+from threading import Thread
 import time
+import threading
 
-class MyPublisher:
-	def __init__(self, clientID,topic,broker):
-		self.clientID = clientID
+class WebServer(object):
+    exposed = True
 
-		# create an instance of paho.mqtt.client
-		self._paho_mqtt = PahoMQTT.Client(self.clientID, False) 
-		# register the callback
-		self._paho_mqtt.on_connect = self.myOnConnect
-		#self.messageBroker = 'iot.eclipse.org'
-		self.messageBroker = broker
+    def __init__(self):
+        self.r = []
 
-	def start (self):
-		#manage connection to broker
-		self._paho_mqtt.connect(self.messageBroker, 1883)
-		self._paho_mqtt.loop_start()
+    def POST(self, *uri, **params):
+        body = cherrypy.request.body.read()
+        self.r.append(body)
 
-	def stop (self):
-		self._paho_mqtt.loop_stop()
-		self._paho_mqtt.disconnect()
+    def GET(self, *uri, **params):
+        return self.r
 
-	def myPublish(self,topic,message):
-		# publish a message with a certain topic
-		self._paho_mqtt.publish(topic, message, 2)
 
-	def myOnConnect (self, paho_mqtt, userdata, flags, rc):
-		print ("Connected to %s with result code: %d" % (self.messageBroker, rc))
+class IlMioThread (Thread):
+   def __init__(self, nome, durata):
+       Thread.__init__(self)
+       self.nome = nome
+       self.durata = durata
 
-if __name__ == "__main__":
-	pub = MyPublisher("device_emulator", "Catalog", "http://mosquitto.eclipse.org")
-	pub.start()
-	data = {
-		"Dispositivi": "device_emulator", 
-		"risorse": ["temperatura", "pesche"], 
-		"end_points": "topic"
-		}
-	while True:
-		pub.myPublish("Catalog", data)
-		time.sleep(60)
+   def run(self):
+       print ("Thread '" + self.name + "' avviato")
+       timestamp=time.time()
+       p=requests.GET("192.168.1.52")
+       if p!=None:
+           x=len(p)
+       payload={"temperatura": p[x-1], "tempo":time}
+       t=requests.PUT("127.0.0.1/post", data=payload)
+
+
+if __name__ == '__main__':
+    conf = {
+        '/': {
+            'tools.sessions.on': True,
+            'request.dispatch': cherrypy.dispatch.MethodDispatcher()
+            }
+        }
+    cherrypy.tree.mount (WebServer(), '/log', conf)
+    cherrypy.config.update({'server.socket_host':'192.168.1.52'})
+    cherrypy.config.update({'server.socket_port':8080})
+
+    Thread=IlMioThread("GG","infinito")
+    x=True
+    if threading.current_thread().getName()=="GG":
+        while x:
+            Thread.run()
+            time.sleep(60)
+    cherrypy.engine.start()
+    cherrypy.engine.block()
+    x=False
+    Thread.join()
