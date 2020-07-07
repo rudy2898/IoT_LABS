@@ -1,52 +1,65 @@
-from sw2_1 import *
-import json
-import paho.mqtt.client as PahoMQTT
+#from sw2_1_main import *
+import paho.mqtt.client as mqtt
+import time
 
-broker_q = "mqtt.eclipse.org"
-port = "8080"
+BROKER = "iot.eclipse.org"
+PORT = 1883
+TOPIC = "Catalog"
 
 class MyMQTTCatalog:
 
     def __init__(self, clientID, topic, broker):
+        self.devices = []
+
         self.clientID = clientID
         self.topic = topic
         self.broker = broker
-        self._paho_mqtt = PahoMQTT.Client(clientID, False)
 
-        self._paho_mqtt.on_connect = self.myOnConnect
-        self._paho_mqtt.on_message = self.myOnMessageReceived
+        self.mqtt_client = mqtt.Client(clientID, False)
+
+        self.mqtt_client.on_connect = self.myOnConnect
+        self.mqtt_client.on_message = self.myOnMessageReceived
 
     def start(self):
-        self._paho_mqtt.connect(self.broker, port)
-        self._paho_mqtt.loop_start()
-        self._paho_mqtt.subscribe(self.topic, 2)
+        self.mqtt_client.connect(self.broker, PORT)
+        self.mqtt_client.loop_start()
+        self.mqtt_client.subscribe(self.topic, 2)
 
     def stop(self):
-        self._paho_mqtt.unsubscribe(self.topic)
-        self._paho_mqtt.loop_stop()
-        self._paho_mqtt.disconnect()
+        self.mqtt_client.unsubscribe(self.topic)
+        self.mqtt_client.loop_stop()
+        self.mqtt_client.disconnect()
 
     def myOnConnect(self, paho_mqtt, userdata, flags, rc):
         print("Connected to %s with result code: %d" % (self.broker, rc))
 
     def myOnMessageReceived(self, paho_mqtt, userdata, msg):
         # A new message is received
+        print("Message recieved.")
+        deviceId = msg.payload["Dispositivi"]
+        for d in self.devices:
+            if d.Id == deviceId:
+                d.timestamp = time.time()
+            else:
+                deviceEndPoints = msg.payload["end_points"]
+                deviceResources = msg.payload["risorse"]
+                self.devices.append(devices(deviceId, deviceEndPoints, deviceResources))
         print("Topic:'" + msg.topic + "', QoS: '" + str(msg.qos) + "' Message: '" + str(msg.payload) + "'")
 
-    # risposta del tipo {"Device":"Id", "resources":[], "end_points":[]}
-    def notify(self,topic,msg):
-        body = json.loads(msg)
-        dev = Catalog.getDev_list()
+    def notify(self, topic, message):
+        print("message recieved")
 
-        find = False
-        for i in range(dev):
-            if body['Device'] == dev[i]:
-                Catalog.updateTimestamp(i)
-                find = True
-        if not find:
-            Catalog.addDevices(body)
+    # risposta del tipo {"Device":"Id", "resources":[], "end_points":[]}
 
 
 if __name__ == "__main__":
-    mqtt_catalog = MyMQTTCatalog("MyMQTTCatalog", "IoT devices", broker_q)
+    mqtt_catalog = MyMQTTCatalog("MyMQTTCatalog", TOPIC, BROKER)
+    print("wow")
     mqtt_catalog.start()
+
+class devices():
+	def __init__(self, uniqueID, end_points, resources):
+		self.Id= uniqueID
+		self.end_points= end_points
+		self.resources= resources
+		self.timestamp=time.time()

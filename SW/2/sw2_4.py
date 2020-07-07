@@ -7,6 +7,7 @@ import time
 import threading
 
 class WebServer(object):
+    
     exposed = True
 
     def __init__(self):
@@ -28,12 +29,8 @@ class IlMioThread (Thread):
 
    def run(self):
        print ("Thread '" + self.name + "' avviato")
-       timestamp=time.time()
-       p=requests.GET("192.168.1.52")
-       if p!=None:
-           x=len(p)
-       payload={"temperatura": p[x-1], "tempo":time}
-       t=requests.PUT("127.0.0.1/post", data=payload)
+       payload={"Servizi": "WebService1", "descrizione":"sensore di temperatura", "end_points": ["Rest Web Service"]}
+       t=requests.put("127.0.0.1/services", data=payload)
 
 
 if __name__ == '__main__':
@@ -48,12 +45,13 @@ if __name__ == '__main__':
     cherrypy.config.update({'server.socket_port':8080})
 
     Thread=IlMioThread("GG","infinito")
+    Thread.start()
     x=True
     if threading.current_thread().getName()=="GG":
         while x:
             Thread.run()
             time.sleep(60)
-    cherrypy.engine.start()
-    cherrypy.engine.block()
     x=False
     Thread.join()
+    cherrypy.engine.start()
+    cherrypy.engine.block()

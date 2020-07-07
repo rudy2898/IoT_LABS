@@ -3,10 +3,12 @@ import time
 
 if __name__ == "__main__":
     device1={
-        "Dispositici": "Dispositivo1", 
-        "risorse": "tante", 
-        "end_points":[0, 1, 2]
+        "Devices": "ID01",
+        "risorse": ["bene", "ciao"],
+        "end_points": ["mqtt", "rest"]
         }
     while True:
-        requests.post("http://localhost:8080/devices", data = device1)
+        r = requests.put("http://localhost:8080/devices/devices", json = device1)
+        print(r.content)
+        print("Message sent.")
         time.sleep(60)
