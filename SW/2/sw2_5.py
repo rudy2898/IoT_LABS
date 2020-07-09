@@ -1,10 +1,12 @@
 #from sw2_1_main import *
 import paho.mqtt.client as mqtt
 import time
+import json
+from sw2_1_nonweb import *
 
-BROKER = "iot.eclipse.org"
+BROKER = "test.mosquitto.org"
 PORT = 1883
-TOPIC = "Catalog"
+TOPIC = "/Catalog"
 
 class MyMQTTCatalog:
 
@@ -35,31 +37,35 @@ class MyMQTTCatalog:
 
     def myOnMessageReceived(self, paho_mqtt, userdata, msg):
         # A new message is received
-        print("Message recieved.")
-        deviceId = msg.payload["Dispositivi"]
+
+        my_json = msg.payload.decode('utf8').replace("'", '"')
+        # Load the JSON to a Python list & dump it back out as formatted JSON
+        data = json.loads(my_json)
+        print(data["Device"])
+        deviceId = data["Device"]
         for d in self.devices:
+            print("nel for")
             if d.Id == deviceId:
                 d.timestamp = time.time()
-            else:
-                deviceEndPoints = msg.payload["end_points"]
-                deviceResources = msg.payload["risorse"]
-                self.devices.append(devices(deviceId, deviceEndPoints, deviceResources))
+                break
+        else:
+            print("nell'else")
+            deviceEndPoints = data["end_points"]
+            deviceResources = data["risorse"]
+            d = devices(deviceId, deviceEndPoints, deviceResources)
+            self.devices.append(d)
         print("Topic:'" + msg.topic + "', QoS: '" + str(msg.qos) + "' Message: '" + str(msg.payload) + "'")
 
-    def notify(self, topic, message):
-        print("message recieved")
-
+    def notify(self, topic, msg):
+        print("Topic:'" + msg.topic + "', QoS: '" + str(msg.qos) + "' Message: '" + str(msg.payload) + "'")
     # risposta del tipo {"Device":"Id", "resources":[], "end_points":[]}
 
 
 if __name__ == "__main__":
     mqtt_catalog = MyMQTTCatalog("MyMQTTCatalog", TOPIC, BROKER)
-    print("wow")
     mqtt_catalog.start()
-
-class devices():
-	def __init__(self, uniqueID, end_points, resources):
-		self.Id= uniqueID
-		self.end_points= end_points
-		self.resources= resources
-		self.timestamp=time.time()
+    a = 0
+    while a < 10:
+        a += 1
+        time.sleep(4)
+    mqtt_catalog.stop()

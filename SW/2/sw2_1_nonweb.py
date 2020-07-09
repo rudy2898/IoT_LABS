@@ -3,7 +3,7 @@ import time
 
 
 class devices():
-	def __init__(self, uniqueID, end_points, resources):
+	def __init__(self, uniqueID, resources, end_points):
 		self.Id= uniqueID
 		self.end_points= end_points
 		self.resources= resources

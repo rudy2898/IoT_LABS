@@ -3,7 +3,7 @@ import time
 
 broker_mqtt = "test.mosquitto.org"
 port_mqtt = 1883
-topic = "Catalog"
+topic = "/Catalog"
 
 class MyMQTTPublisher:
 	def __init__(self, clientID, topic, broker, port):
@@ -17,7 +17,7 @@ class MyMQTTPublisher:
 
 	def start (self):
 		#manage connection to broker
-		self._paho_mqtt.connect(self.messageBroker, 1883)
+		self._paho_mqtt.connect(self.messageBroker, port_mqtt)
 		self._paho_mqtt.loop_start()
 
 	def stop (self):
@@ -27,6 +27,7 @@ class MyMQTTPublisher:
 	def myPublish(self, topic, message):
 		# publish a message with a certain topic
 		self._paho_mqtt.publish(topic, message, 2)
+		print("Message sent")
 
 	def myOnConnect (self, paho_mqtt, userdata, flags, rc):
 		print ("Connected to %s with result code: %d" % (self.messageBroker, rc))
@@ -39,13 +40,13 @@ if __name__ == "__main__":
 	done = False
 #	command_menu = 'Type:\n "add" to add a new device or refresh its timestamp (expected json file)\n "end" to quit\n'
 	device1={
-        "Dispositici": "Dispositivo1", 
+        "Device": "Dispositivo1", 
         "risorse": "tante", 
         "end_points":[0, 1, 2]
         }
 	while True:
 		my_mqtt.myPublish(topic, str(device1))
-		time.sleep(60)
+		time.sleep(5)
 #	while not done:
 #		print(command_menu)
 #		command = input("Insert: ")

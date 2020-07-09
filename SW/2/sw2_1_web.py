@@ -8,13 +8,14 @@ from sw2_1_nonweb import *
 class dev:
 	exposed=True
 	def __init__(self):
+		
 		self.disp=[]
 
 	def GET(self, *uri, **params):
 		if uri[0]=="list":
 			return funzioni_varie.get(self.disp,"Device")
 		elif uri[0]=="search" and len(uri) > 1:
-			return funzioni_varie.search(self.disp,uri[1],"Dispositivi")
+			return funzioni_varie.search(self.disp,uri[1],"Devices")
 		else:
 			return {"Risultato" : "Invalid_command"}
 
@@ -87,14 +88,15 @@ class br:
 	exposed=True
 	
 	def __init__(self):
-		self.broker = "mqtt.eclipse.org"
-		self.port = 8080
+		self.broker = "test.mosquitto.org"
+		self.port = 1883
 
 	
 
 	def GET(self, *uri, **params):
 		if uri[0]=="ip":
-			return funzioni_varie.getIp(self.broker,self.port)
+			d = {"Ip": self.broker, "port":self.port}
+			return json.dumps(d)
 		else:
 			return {"Risultato": "Invalid_command" }
 
