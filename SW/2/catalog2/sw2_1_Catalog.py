@@ -113,7 +113,7 @@ class Users:
 				surname = json_body["surname"]
 				email = json_body["email"]
 				u = User(userId, name, surname, email)
-				self.devices.add(u)
+				self.users.add(u)
 
 class Services:
 	""" classe che espone GET e PUT per i servizi nel Catalog """
@@ -154,7 +154,7 @@ class Services:
 				description = json_body["description"]
 				end_points = json_body["end_points"]
 				s = Service(serviceId, description, end_points)
-				self.devices.add(s)
+				self.services.add(s)
 
 class Broker:
 	""" classe web che espone una GET per richiedere le informazioni

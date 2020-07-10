@@ -38,17 +38,17 @@ class MyPublisher:
 
 	def registerOnCatalog(self):
 		service = {
-			"Servizi": self.serviceId,
-			"descrizione": self.description,
+			"serviceId": self.serviceId,
+			"description": self.description,
 			"end_points": self.end_points
 		}
-		requests.put("http://localhost:8080/services/services", json = service)
+		requests.put("http://localhost:8080/services/add", json = service)
 
 	def getBrokerInfo(self):
-		r = requests.get("http://localhost:8080/broker/ip") #controllare che cosa ritorna requests
+		r = requests.get("http://localhost:8080/broker/info") #controllare che cosa ritorna requests
 		info = json.loads(r.content.decode('utf-8'))
-		self.messageBroker = info["Ip"]
-		self.port = info["port"]
+		self.messageBroker = info["brokerIp"]
+		self.port = info["brokerPort"]
 		print(f"{self.port} {self.messageBroker}")
 
 	def getDeviceTopic(self, deviceId):
