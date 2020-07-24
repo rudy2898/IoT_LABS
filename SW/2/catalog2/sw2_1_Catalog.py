@@ -51,7 +51,7 @@ class Devices:
 		else:
 			raise cherrypy.HTTPError(400, "Bad request, try again.")
 
-	def PUT (self, *uri, **params):
+	def POST (self, *uri, **params):
 		""" add salva nel Collector della classe l'oggetto Device
 			creato con le info ricevute come json nel body 
 			oppure aggiorna il timestamp se il device è già
@@ -62,6 +62,7 @@ class Devices:
 		if body == '':
 			raise cherrypy.HTTPError(400, "Bad request, empty body")
 		json_body = json.loads(body)
+#		print(json.dumps(json_body))
 		if uri[0] == "add":
 			deviceId = json_body["deviceId"]
 			if self.devices.contains(deviceId):

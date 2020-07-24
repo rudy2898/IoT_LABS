@@ -1,64 +1,89 @@
-import paho.mqtt.client as mqtt
+import requests
+import json
+import cherrypy
+from sw3_4_MyMQTT import *
 
-class RemoteController:
-	def __init__(self, clientID, broker, port, notifier):
-		self.broker = broker
-		self.port = port
-		self.notifier = notifier
-		self.clientID = clientID
+class RemoteController():
 
-		self._topic = ""
-		self._isSubscriber = False
+	exposed = True
 
-		# create an instance of paho.mqtt.client
-		self._paho_mqtt = mqtt.Client(clientID, False) 
+	def __init__(self):
+		self.mqtt_client = MyMQTT("MyCkient_1", "test.mosquitto.org", 1883)
+		self.mqtt_client.start()
 
-		# register the callback
-		self._paho_mqtt.on_connect = self.myOnConnect
-		self._paho_mqtt.on_message = self.myOnMessageReceived
+	def GET(self, *uri, **params):
+		# http://localhost:8080/controller/?command=temp
+
+		if "Command" in params.keys():
+			command = params["Command"]
+			if command == "PRESENCE":
+				ret = self.mqtt_client.msg["Presence"]
+				return json.dumps(ret)
+			elif command == "TEMP":
+				ret = self.mqtt_client.msg["Temperature"]
+				return json.dumps(ret)
+			elif command == "NOISE":
+				ret = self.mqtt_client.msg["Noise"]
+				return json.dumps(ret)
+			else:		
+				raise cherrypy.HTTPError(400, "Bad request, wrong command.")
+		else:		
+			raise cherrypy.HTTPError(400, "Bad request, wrong or missing command.")
+
+	def PUT(self, *uri, **params):
+		body = cherrypy.request.body.read().decode('utf-8')		
+		if body == '':
+			raise cherrypy.HTTPError(400, "Bad request, empty body")
+		json_body = json.loads(body)
+		command = json_body["Command"]
+		msg = {
+			"bn": "Yun", 
+			"e": [
+				{
+				"n": "", 
+				"t": "null", 
+				"v": 0, 
+				"u": "null",
+				"s": ""
+					}
+				]
+			}
+		if command == "FAN_ON":
+			msg["e"][0]["n"] = "fan"
+			msg["e"][0]["v"] = 1
+			self.mqtt_client.myPublish(msg)
+		elif command == "FAN_OFF":
+			msg["e"][0]["n"] = "fan"
+			msg["e"][0]["v"] = 0
+			self.mqtt_client.myPublish(msg)
+		elif command == "LED_ON":
+			msg["e"][0]["n"] = "led"
+			msg["e"][0]["v"] = 1
+			self.mqtt_client.myPublish(msg)
+		elif command == "LED_OFF":
+			msg["e"][0]["n"] = "led"
+			msg["e"][0]["v"] = 0
+			self.mqtt_client.myPublish(msg)
+		elif command == "CHANGE_SETPOINTS":
+			msg["e"][0]["n"] = "setpoints"
+			msg["e"][0]["s"] = json_body["values"]
+			self.mqtt_client.myPublish(msg)
+		elif command == "PRINT_LCD":
+			msg["e"][0]["n"] = "print"
+			msg["e"][0]["s"] = json_body["values"]
+			self.mqtt_client.myPublish(msg)
+		else:
+			raise cherrypy.HTTPError(400, "Bad request, wrong command.")
 
 
-	def myOnConnect (self, paho_mqtt, userdata, flags, rc):
-		print ("Connected to %s with result code: %d" % (self.broker, rc))
 
-	def myOnMessageReceived (self, paho_mqtt , userdata, msg):
-		# A new message is received
-		self.notifier.notify (msg.topic, msg.payload)
+""" GET viene usata per ricevere i valori da Arduino: l'utente inserisce il codice per ricevere
+	i valori di temperatura, il comando viene inviato al server tramite una PUT,
+	il server tramite controller fa	una publish ad Arduino che da subscriber riceve il messaggio 
+	e fa una publish con le	informazioni richieste, il controller nel server riceve il messaggio
+	... problema: come fa controller a dare il messaggio al server
+		problema: controller e Arduino sono sincronizzati?
 
-
-	def myPublish (self, topic, msg):
-		# if needed, you can do some computation or error-check before publishing
-		print ("publishing '%s' with topic '%s'" % (msg, topic))
-		# publish a message with a certain topic
-		self._paho_mqtt.publish(topic, msg, 2)
-
-	def mySubscribe (self, topic):
-		# if needed, you can do some computation or error-check before subscribing
-		print ("subscribing to %s" % (topic))
-		# subscribe for a topic
-		self._paho_mqtt.subscribe(topic, 2)
-
-		# just to remember that it works also as a subscriber
-		self._isSubscriber = True
-		self._topic = topic
-
-	def start(self):
-		#manage connection to broker
-		self._paho_mqtt.connect(self.broker , self.port)
-		self._paho_mqtt.loop_start()
-
-	def stop (self):
-		if (self._isSubscriber):
-			# remember to unsuscribe if it is working also as subscriber 
-			self._paho_mqtt.unsubscribe(self._topic)
-
-		self._paho_mqtt.loop_stop()
-		self._paho_mqtt.disconnect()
-
-	def registerOnCatalog(self):
-		service = {
-			"Servizi": self.serviceId,
-		"descrizione": self.descrizione,
-			"end_points": self.end_points
-		}
-		requests.put("http://localhost:8080/services/add", json = service)
+		I messaggi dell'arduino ricevuti dal controller possono essere salvati in una struttura
+		dati e quando l'utente li richiede viene ritornato l'ultimo messaggio ricevuto
+		"""
