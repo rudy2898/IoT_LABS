@@ -4,7 +4,7 @@ import requests
 import json
 
 class MyPublisher:
-	def __init__(self, clientID, serviceId, description, end_points = []):
+	def __init__(self, clientID, serviceId, description):
 		self.clientID = clientID
 
 		# create an instance of paho.mqtt.client
@@ -14,10 +14,10 @@ class MyPublisher:
 		self._paho_mqtt.on_connect = self.myOnConnect
 		self.serviceId = serviceId
 		self.description = description
-		self.end_points = end_points
-                
-		self.messageBroker = 'test.mosquitto.org'
-		self.port = 1883
+		self.end_points = []
+
+		self.messageBroker = 'null'
+		self.port = -1
 
 	def start (self):
 		#manage connection to broker
@@ -45,7 +45,7 @@ class MyPublisher:
 		requests.put("http://localhost:8080/services/add", json = service)
 
 	def getBrokerInfo(self):
-		r = requests.get("http://localhost:8080/broker/info") #controllare che cosa ritorna requests
+		r = requests.get("http://localhost:8080/broker/info")
 		info = json.loads(r.content.decode('utf-8'))
 		self.messageBroker = info["brokerIp"]
 		self.port = info["brokerPort"]
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 	mypub.getBrokerInfo()
 	mypub.start()
 	time.sleep(2)
-	k = True
+	keep_going = True
 	msg = {
 		"bn": "Yun", 
 		"e": [
@@ -76,7 +76,7 @@ if __name__ == "__main__":
 				}
 			]
 		}
-	while k:
+	while keep_going:
 		code = input("Inserire 0 per spegnere il led o 1 per accenderlo.")
 		if code == "0":
 			msg["e"][0]["v"] = 0
@@ -85,6 +85,6 @@ if __name__ == "__main__":
 			msg["e"][0]["v"] = 1
 			mypub.myPublish(json.dumps(msg))
 		else:
-			k = False
+			keep_going = False
 			print("Bye.")
 	mypub.stop()

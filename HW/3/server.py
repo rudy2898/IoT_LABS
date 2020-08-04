@@ -29,7 +29,7 @@ if __name__ == '__main__':
         }
 
     cherrypy.tree.mount (WebServer(), '/log', conf)
-    cherrypy.config.update({'server.socket_host':'192.168.1.52'})
+    cherrypy.config.update({'server.socket_host':'localhost'})
     cherrypy.config.update({'server.socket_port':8080})
 
     cherrypy.engine.start()

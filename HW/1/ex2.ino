@@ -11,12 +11,11 @@ int redLedState = LOW;
 
 
 void setup() {
-
   Serial.begin(9600);
   while (!Serial);
   pinMode(RLED_PIN, OUTPUT);
   pinMode(GLED_PIN, OUTPUT);
-  Serial.println("Lab 1.2 starting");
+  Serial.println("Lab 1.2 starting...");
   Timer1.initialize(G_HALF_PERIOD * 1e06);
   Timer1.attachInterrupt(blinkGreen);
 }
@@ -50,5 +49,4 @@ void loop(){
   redLedState = !redLedState;
   digitalWrite(RLED_PIN, redLedState);
   delay(R_HALF_PERIOD * 1e03);
-  
 }

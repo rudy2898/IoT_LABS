@@ -6,8 +6,8 @@ import requests
 class WebService(object):
     exposed = True
     os.getcwd()
+
     def GET(self, *uri, **params):
-        
         return open('index.html')
 
     def POST(self, *uri, **params):

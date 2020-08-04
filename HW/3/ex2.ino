@@ -7,6 +7,8 @@
 BridgeServer server;
 
 //parametri sensore temperatura
+const int LED = 7;
+int led_value = LOW;
 const int B = 4275;
 const long int R0 = 100000;
 const int TEMP_PIN = A0;
@@ -24,8 +26,6 @@ float readTemp(){
     return temp;
 }
 
-
-
 int postRequest(String data){
 	Process p;
 	p.begin("curl");
@@ -41,7 +41,6 @@ int postRequest(String data){
 	return p.exitValue();
 }
 
-
 String senMlEncode(String res, float v, String unit){
   doc_snd.clear(); //libera memoria utilizzata da doc_snd
   doc_snd["bn"] = "Yun";
@@ -55,11 +54,11 @@ String senMlEncode(String res, float v, String unit){
   return output;
 }
 
-
-
 void setup()
 {
-	Bridge.begin();
+    digitalWrite(LED, led_value);
+    Bridge.begin();
+    digitalWrite(LED, !led_value);
   	server.listenOnLocalhost();
   	server.begin();
 }

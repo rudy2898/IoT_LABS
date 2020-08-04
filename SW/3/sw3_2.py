@@ -6,7 +6,7 @@ import json
 
 class MySubscriber:
 
-	def __init__(self, clientID, serviceId, description, end_points = []):
+	def __init__(self, clientID, serviceId, description):
 		self.clientID = clientID
 		# create an instance of paho.mqtt.client
 		self._paho_mqtt = mqtt.Client(clientID, False) 
@@ -17,10 +17,10 @@ class MySubscriber:
 
 		self.serviceId = serviceId
 		self.descrizione = description
-		self.end_points = end_points
-		self.topic = '/this/is/my/topic'
-		self.messageBroker = 'iot.eclipse.org'
-		self.port = 'nulla'
+		self.end_points = []
+		self.topic = 'null'
+		self.messageBroker = 'null'
+		self.port = -1
 
 
 	def start (self):
@@ -52,7 +52,7 @@ class MySubscriber:
 		requests.put("http://localhost:8080/services/add", json = service)
 
 	def getBrokerInfo(self):
-		r = requests.get("http://localhost:8080/broker/info") #controllare che cosa ritorna requests
+		r = requests.get("http://localhost:8080/broker/info")
 		info = json.loads(r.content.decode('utf-8'))
 		self.messageBroker = info["brokerIp"]
 		self.port = info["brokerPort"]

@@ -7,7 +7,7 @@ import time
 import threading
 
 class WebServer(object):
-    
+
     exposed = True
 
     def __init__(self):

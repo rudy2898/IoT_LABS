@@ -3,11 +3,11 @@ const int step = 25;
 float current_speed = 0;
 
 void setup() {
-  // put your setup code here, to run once:
+  Serial.begin(9600);
+  while(!Serial);
   pinMode(FAN_PIN, OUTPUT);
   analogWrite(FAN_PIN, (int) current_speed);
   Serial.println("Lab 1.4 start");
-
 }
 
 void loop() {

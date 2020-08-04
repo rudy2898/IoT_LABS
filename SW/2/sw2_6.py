@@ -38,7 +38,6 @@ if __name__ == "__main__":
 	my_mqtt.start()
 
 	done = False
-#	command_menu = 'Type:\n "add" to add a new device or refresh its timestamp (expected json file)\n "end" to quit\n'
 	device1={
         "Device": "Dispositivo1", 
         "risorse": "tante", 
@@ -47,16 +46,3 @@ if __name__ == "__main__":
 	while True:
 		my_mqtt.myPublish(topic, str(device1))
 		time.sleep(5)
-#	while not done:
-#		print(command_menu)
-#		command = input("Insert: ")
-#		if command == "add":
-#			json_string = input("Json string: ")
-#			my_mqtt.myPublish(topic, json_string)
-#			print(json_string)
-#			time.sleep(60)
-#		elif command == "finish":
-#			print("Closing the program")
-#			done = True
-#		else: 
-#			print("Wrong command, please try again")

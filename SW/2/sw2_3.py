@@ -9,6 +9,4 @@ if __name__ == "__main__":
         }
     while True:
         r = requests.put("http://localhost:8080/devices/devices", json = device1)
-        print(r.content)
-        print("Message sent.")
         time.sleep(60)

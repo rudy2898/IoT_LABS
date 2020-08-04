@@ -60,7 +60,7 @@ def checkParams(params):
     """
     chiavi=list(params.keys())
     valori=params.values()
-    """ controllo chiavi """
+    #controllo chiavi
     if len(chiavi)!=3:
         return False
     if chiavi[0]!="value" or chiavi[1]!="originalUnit" or chiavi[2]!="targetUnit":
@@ -69,7 +69,7 @@ def checkParams(params):
         return False
     else:
         return True
-    """ controllo valori """
+    #controllo valori
     if len(valori)!=3:
         return False
     if not str.isdigit(valori[0]) or not keys.intersection(valori[1]) or not keys.intersection(valori[2]):

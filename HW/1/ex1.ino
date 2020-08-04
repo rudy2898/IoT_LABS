@@ -15,17 +15,13 @@ void blinkGreen() {
 }
 
 void setup() {
-  // put your setup code here, to run once:
-  
   pinMode(RLED_PIN, OUTPUT);
   pinMode(GLED_PIN, OUTPUT);
   Timer1.initialize(G_HALF_PERIOD * 1e06);
   Timer1.attachInterrupt(blinkGreen);
-
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   redLedState = !redLedState;
   digitalWrite(RLED_PIN, redLedState);
   delay(R_HALF_PERIOD * 1e03);

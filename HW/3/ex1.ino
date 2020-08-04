@@ -78,7 +78,7 @@ float readTemp(){
 
 
 
-void process(BridgeClient client){ 
+void process(BridgeClient client){
   String command = client.readStringUntil('/'); //vado a dividere l'URL partendo da dopo /arduino/
   command.trim();
 
@@ -118,6 +118,6 @@ void loop(){
   if (client){
     process(client); //vado ad elaborare richiesta del client
     client.stop(); //funzione da scrivere
-  } 
+  }
   delay(50);
 }

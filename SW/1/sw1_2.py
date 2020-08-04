@@ -4,18 +4,6 @@ import pytemp
 import array
 
 keys={"K","C","F"}
-"""
-def controllo_chiavi(chiavi):
-	if len(chiavi)!=3:
-		if chiavi[0]=="value" or chiavi[1]=="originalUnit" or chiavi[2]=="targetUnit":
-			return 0
-	else:
-		return 1
-	"""
-
-
-
-
 
 def check_uri(uri):
     if len(uri)==4:
@@ -33,67 +21,28 @@ def check_temp(temp, unit1, unit2):
 def convert(uri):
     return pytemp.pytemp(float(uri[1]), uri[2], uri[3])
 
-
-
-
-
-
 class MyWebServices(object):
 
 	exposed=True
 
 	def GET(self,*uri):
 		if uri != '':
-			
 			ind = ' '.join(uri)
-			
 			ind = ind.split(' ')
-
 			if check_uri(ind):
-
 				ind.append(convert(ind))
 				i=1
-				diz = {'value':'',
-                   'originalUnit':'',
-                   'targetUnit':'',
-                   'valueConvert':''
-           		}
-
+				diz = {
+                                        'value':'',
+                                        'originalUnit':'',
+                                        'targetUnit':'',
+                                        'valueConvert':''
+                                        }
 				for key in diz.keys():
 					diz[key] = ind[i]
 					i+=1
-
 				return json.dumps(diz)
-			else:
+                        else:
 				return "Valori passati non corretti"
-			
-            
 		else:
 			return "Nessuna richiesta"
-
-
-
-		"""r="".join(uri)
-		if uri!="":
-			if r=="converter":
-				if params!="":
-					k=params.keys()
-					v=params.values()
-					x=controllo_chiavi(k)
-					if x==0:
-						return "errore"
-					x=trasforma_valori(v)
-					if x==None:
-						return "errore"
-					else:
-						c=[1,2,3]
-						i=0
-						for p in v:
-							c[i]=str(p)
-							i+=1
-						diz={str(c[0]) : str(c[1]), str(x) : str(c[2])}
-						pp=json.dumps(diz)
-						return pp
-			else:
-				return "funzione non richiamata correttamente" """
-

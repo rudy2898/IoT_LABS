@@ -68,7 +68,7 @@ class myWebServices(object):
                 json_body['convertedValue'] = values
                 return json.dumps(json_body)
             else:
-                return "Values converted over Absolute Zero"
+                return json.dumps({"Error": "Values over absolute zero."})
         else:
             ret = switcher(cl, cu)
             return ret

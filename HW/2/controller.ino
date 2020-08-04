@@ -7,7 +7,7 @@ const int TEMP_PIN = A0;
 const int LED_PIN = 9;
 const int PIR_PIN = 7;
 const int SOUND_PIN = 4;
-const int LIGHT_PIN = 12;
+const int LIGHT_PIN = 12; //lampadina smart
 
 const int B = 4275;
 const long int R0 = 100000;
@@ -39,8 +39,8 @@ int led_max = 25;
 
 //lampadina smart
 unsigned long int c;
-int light_time = 500; //periodo campionamento pir
-int value = LOW; //stato led
+int light_time = 500; //periodo campionamento sensore di suono
+int value = LOW; //stato lampadina
 
 
 unsigned long int last; //ultimo istante in cui si è registrato un interrupt del PIR
@@ -58,23 +58,30 @@ int is_present = 0;
 int n_sound_events;
 unsigned long int s = 0; //conteggio 10 minuti
 
-void setSpeed(float temp);
-void setLight(float temp);
-void PIRisr();
-float readTemp();
-void printLCD();
-void turnLightOn();
+//funzioni utilizzate
+void setSpeed(float temp); //imposta la velocità della ventola data la temperatura
+void setLight(float temp); //imposta la luminosità del led data la temperatura
+void PIRisr(); // ISR del sensore di movimento
+float readTemp(); // legge il valore delle temperatura dell'ambiente
+void printLCD(); //stampa le informazioni del controllore
+void turnLightOn(); // accende e spegne il led attraverso battiti di mani
+void changeSetPoints(); // cambia i set point
+void insertSetPoints() // legge i valori dei setpoint inseriti da seriale
+void readSound() // rileva persone nella stanza in base al suono
+void event() // conta rilevazioni di suono e incrementa il contatore corrispondente
+void PIRtimeout() // cambia setpoints trascorsi timeiut_pir senza rilevare movimento
 
 void setup() {
 
-  //lcd init
   lcd.begin(16, 2);
   lcd.setBacklight(255);
   lcd.home();
   lcd.clear();
 
   Serial.begin(9600);
-  Serial.print("Starting...");
+  while(!Serial);
+  Serial.println("Starting...");
+  Serial.println("Per aggiornare i valori dei setpoint premere U.");
   last=millis();
   ss=millis();
   sound_event=0;
@@ -111,8 +118,8 @@ void event(){
   } else n_events_second++;
 }
 
-void readSound() {
-  
+void readSound(){
+
   if(millis() - sound_event >= timeout_sound){ //60 minuti set is_present
     sound_is_present = 0;
     is_present = pir_is_present | sound_is_present;
@@ -131,34 +138,37 @@ void readSound() {
 
   if(millis() - camp >= sound_interval){ //campionamento 500ms
       if(digitalRead(SOUND_PIN) == LOW) {
-      Serial.println(n_sound_events);
       event();
       camp = millis();
     }
   }
-  
+
   if(millis() - s >= sound_interval){ //intervallo da 10 minuti
     n_sound_events = n_events_first + n_events_second;
     if(n_sound_events > 50) {
         sound_event = millis();
         sound_is_present = 1;
-//        Serial.println(n_sound_events);
     }
-//    Serial.println(n_sound_events);
     s = millis();
    } 
 }
 
 void loop() {
     temp = readTemp();
-//    Serial.print(temp);
-//    setSpeed(temp);
-//    setLight(temp);
+
+    if( Serial.available() ) {
+      if( Serial.read() == 'U') {
+        insertSetPoints();
+        changeSetPoints();
+      }
+    }
+
+    setSpeed(temp);
+    setLight(temp);
+    PIRtimeout();
     readSound();
     printLCD();
-
-    
-
+    turnLightOn();
 }
 
 void PIRtimeout(){
@@ -166,11 +176,10 @@ void PIRtimeout(){
       pir_is_present = 0;
       is_present = pir_is_present | sound_is_present;
       changeSetPoints();
-      Serial.println("Nessuno.");
-//        Serial.println(last);
       last = millis();
     }
 }
+
 void setSpeed(float temp){
   int current_speed;
   if(temp > fan_min && temp < fan_max){ //temperatura in range
@@ -186,10 +195,7 @@ void setSpeed(float temp){
 void setLight(float temp){
     if(temp > led_min && temp < led_max) { //temperatura in range
         current_light = v_max * (1 - (temp / led_max));
-//    Serial.print(current_light);
-//   Serial.print('\n');
     } else if(temp < led_min){
-        Serial.println("min");
         current_light = 255;
     } else {
         current_light = 0;
@@ -199,9 +205,7 @@ void setLight(float temp){
 
 void PIRisr(){
     pir_is_present = 1;
-//    Serial.println("Movimento rilevato.");
     last = millis();
-//    return pir!=0;
 }
 
 float readTemp(){
@@ -218,7 +222,7 @@ void insertSetPoints(){
   int i=0;
   while(i<4){
     if(Serial.available()>0){
-      int inByte = Serial.read();
+      int inByte = Serial.parseInt();
       fan_values[i]=inByte;
       i++;
     }
@@ -228,7 +232,7 @@ void insertSetPoints(){
   i=0;
   while(i<4){
     if(Serial.available()>0){
-      int inByte = Serial.read();
+      int inByte = Serial.parseInt();
       led_values[i]=inByte;
       i++;
     }
@@ -237,29 +241,33 @@ void insertSetPoints(){
 
 void printLCD(){
   lcd.home();
-  lcd.print("Temp:");
+  lcd.print("T:");
   lcd.print(temp);
-  lcd.print("Pres:");
+  lcd.print(" Pres:");
   lcd.print(is_present);
   lcd.setCursor(0,1);
-  int fan = current_speed / 255 * 100;
-  int led = current_light / 255 * 100;
+  int fan = current_speed * 100 / 255;
+  int led = current_light * 100 / 255;
   lcd.print("AC:");
   lcd.print(fan);
+  lcd.print("% ");
   lcd.print("HT:");
   lcd.print(led);
+  lcd.print("%");
+
   delay(5000);
   lcd.clear();
   lcd.home();
   lcd.print("AC m:");
   lcd.print(fan_min);
-  lcd.print("M:");
+  lcd.print(" M:");
   lcd.print(fan_max);
   lcd.setCursor(0,1);
   lcd.print("HT m:");
   lcd.print(led_min);
-  lcd.print("M:");
+  lcd.print(" M:");
   lcd.print(led_max);
+  delay(5000);
 }
 
 void turnLightOn(){

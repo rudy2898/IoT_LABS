@@ -6,7 +6,6 @@ volatile int tot_count = 0;
 void checkPresence(){
   int pir = digitalRead(PIR_PIN);
   if (pir){
-    
     tot_count += 1;
     digitalWrite(LED_PIN, HIGH);
     delay(10000);
@@ -17,6 +16,7 @@ void checkPresence(){
 void setup()
 {
   Serial.begin(9600);
+  while(!Serial);
   pinMode(LED_PIN, OUTPUT);
   pinMode(PIR_PIN, INPUT);
   attachInterrupt(digitalPinToInterrupt(PIR_PIN), checkPresence, CHANGE);
