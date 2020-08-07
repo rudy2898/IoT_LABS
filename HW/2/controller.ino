@@ -12,7 +12,7 @@ const int LIGHT_PIN = 12; //lampadina smart
 const int B = 4275;
 const long int R0 = 100000;
 
-const int timeout_pir = 10000;
+const int timeout_pir = 1800000; //30 minuti
 const int timeout_sound = 60000; //se l'ultima rilevazione risale a più di 1 minuto fa non c'è nessuno
 const int sound_interval = 500; //campionamento sensore
 const int minutes5 = 300000;
@@ -30,12 +30,12 @@ int led_values[4];
 
 //fan setpoints
 int fan_min = 20;
-int fan_max = 25;
+int fan_max = 30;
 
 
 //led setpoints
-int led_min = 15;
-int led_max = 25;
+int led_min = 10;
+int led_max = 20;
 
 //lampadina smart
 unsigned long int c;
@@ -285,4 +285,6 @@ void turnLightOn(){
       }
       c = millis();
   }
+	if (!is_present){
+		digitalWrite(LIGHT_PIN,LOW);
 }
